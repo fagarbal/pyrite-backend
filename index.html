@@ -9,16 +9,21 @@
 			this.socket = socket();
 
 			return new Promise((resolve) => {
-				this.socket.on('methods', (methods) => {
-					for (let method of methods) {
-						const callback = (...args) => {
-							return new Promise((resolve) => {
-								this.socket.on(method, resolve);
-								this.socket.emit(method, method, ...args);
-							});
-						};
+				this.socket.on('controllersAllow', (controllers) => {
+					for (let controller in controllers) {
+						this[controller] = {};
 
-						this[method] = callback.bind(this);
+						for (let method of controllers[controller]) {
+							const callback = (...args) => {
+								return new Promise((resolve) => {
+									this.socket.on(controller + '.' + method + ':' + args, resolve);
+									this.socket.emit(controller + '.' + method, controller, method, ...args);
+								});
+							};
+
+							this[controller][method] = callback.bind(this);
+						}
+
 					}
 					resolve(this);
 				});
@@ -27,14 +32,22 @@
 	};
 
 	Server.run(io).then((server) => {
-		server.getNumbers().then((data) => {
+		server.example.getNumbers().then((data) => {
 			console.log(data)
 		});
-		server.sum(1,2).then((data) => {
+		server.example.sum(1,2).then((data) => {
 			console.log(data)
 		});
 
-		server.formatName('Fabio','Garcia', 'Balbuena').then((data) => {
+		server.example.sum(8,7).then((data) => {
+			console.log(data)
+		});
+
+		server.example.formatName('Fabio','Garcia', 'Balbuena').then((data) => {
+			console.log(data)
+		});
+
+		server.example.formatName('Pepe','Hola', 'Where').then((data) => {
 			console.log(data)
 		});
 	});

@@ -14,28 +14,44 @@ http.listen(3000, () => {
 
 class PyriteServer {
 	constructor(io) {
-		this.methods = [];
+		this.controllers = {};
+		this.controllersAllow = {};
 		this.io = io;
 	}
 
-	add(controller, method) {
-		this[method.name] = method.bind(controller);
-		this.methods.push(method.name);
+	add(controller, name) {
+
+		const controllerName = name || controller.constructor.name;
+
+		this.controllers[controllerName] = {};
+		this.controllersAllow[controllerName] = [];
+
+		for (let name of Object.getOwnPropertyNames(Object.getPrototypeOf(controller))) {
+			if (name === 'constructor') continue;
+
+			let method = controller[name];
+
+			this.controllers[controllerName][name] = method.bind(controller);
+			this.controllersAllow[controllerName].push(name);
+		}
+
 		return this;
 	}
 
 	listen() {
 		this.io.on('connection', (socket) => {
-			const callback = (name, ...args) => {
-				const result = this[name](...args);
-				socket.emit(name, result);
+			const callback = (controller, controllerName, method, ...args) => {
+				const result = controller[method](...args);
+				socket.emit(controllerName + '.' + method + ':' + args, result);
 			};
 
-			for (let method of this.methods) {
-				socket.on(method, callback);
+			for (let controller in this.controllersAllow) {
+				for (let method of this.controllersAllow[controller]) {
+					socket.on(controller + '.' + method, callback.bind(this.controllers[controller], this.controllers[controller]));
+				}
 			}
 
-			socket.emit('methods', this.methods);
+			socket.emit('controllersAllow', this.controllersAllow);
 		});
 	}
 }
@@ -63,8 +79,6 @@ class ExampleController {
 const exampleController = new ExampleController();
 
 pyrite
-	.add(exampleController, exampleController.getNumbers)
-	.add(exampleController, exampleController.sum)
-	.add(exampleController, exampleController.formatName);
+	.add(exampleController, 'example');
 
 pyrite.listen();
