@@ -5,28 +5,31 @@
 <script>
 	'use strict';
 
+	
 	class PyriteServer {
-		constructor(socket, sync) {
-			this.socket = socket();
+		constructor(socket, url) {
+			this.socket = url ? socket.connect(url) : socket();
 
 			return this.get();
+		}
+
+		__handleMethod(controller, method) {
+			return (...args) => {
+				return new Promise((resolve) => {
+					this.socket.on(controller + '.' + method + ':' + args, resolve);
+					this.socket.emit(controller + '.' + method, controller, method, ...args);
+				});
+			};
 		}
 
 		get() {
 			return new Promise((resolve) => {
 				this.socket.on('controllersAllow', (controllers) => {
-					console.log(controllers);
-
 					for (let controller in controllers) {
 						this[controller] = {};
 
 						for (let method of controllers[controller]) {
-							const callback = (...args) => {
-								return new Promise((resolve) => {
-									this.socket.on(controller + '.' + method + ':' + args, resolve);
-									this.socket.emit(controller + '.' + method, controller, method, ...args);
-								});
-							};
+							const callback = this.__handleMethod(controller, method);
 
 							this[controller][method] = callback.bind(this[controller]);
 						}
@@ -38,9 +41,8 @@
 		}
 	}
 
-	var piriteServer = new PyriteServer(io);
 
-	var piriteMethods = null;
+	var piriteServer = new PyriteServer(io);
 
 	piriteServer.then((server) => {
 		server.example.getNumbers().then((data) => {
@@ -72,8 +74,6 @@
 		});
 
 		server.example.setNumbers([4,5,6]);
-
-		piriteMethods = server;
 	});
 
 
