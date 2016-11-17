@@ -18,9 +18,10 @@ class PyriteServer {
 		this.io = io;
 	}
 
-	add(name, method) {
-		this[name] = method;
-		this.methods.push(name);
+	add(controller, method) {
+		this[method.name] = method.bind(controller);
+		this.methods.push(method.name);
+		return this;
 	}
 
 	listen() {
@@ -41,16 +42,29 @@ class PyriteServer {
 
 const pyrite = new PyriteServer(io);
 
-pyrite.add('getNumbers', () => {
-	return [1,2,3];
-});
+class ExampleController {
+	constructor () {
+		this.numbers = [1,2,3];
+	}
 
-pyrite.add('sum', (a, b) => {
-	return a + b;
-});
+	getNumbers() {
+		return this.numbers;
+	}
 
-pyrite.add('names', (a, b, c) => {
-	return a + ' ' + b + ' ' + c;
-});
+	sum(a, b) {
+		return a + b;
+	}
+
+	formatName(name, middlename, lastname) {
+		return name + ' ' + middlename + ' ' + lastname;
+	}
+}
+
+const exampleController = new ExampleController();
+
+pyrite
+	.add(exampleController, exampleController.getNumbers)
+	.add(exampleController, exampleController.sum)
+	.add(exampleController, exampleController.formatName);
 
 pyrite.listen();
