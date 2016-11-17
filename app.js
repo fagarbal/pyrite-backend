@@ -19,7 +19,8 @@ class PyriteServer {
 		this.io = io;
 	}
 
-	add(controller, name) {
+	add(controllerClass, name) {
+		let controller = controllerClass;
 
 		const controllerName = name || controller.constructor.name;
 
@@ -47,7 +48,7 @@ class PyriteServer {
 
 			for (let controller in this.controllersAllow) {
 				for (let method of this.controllersAllow[controller]) {
-					socket.on(controller + '.' + method, callback.bind(this.controllers[controller], this.controllers[controller]));
+					socket.on(controller + '.' + method, callback.bind(this, this.controllers[controller]));
 				}
 			}
 
@@ -67,6 +68,10 @@ class ExampleController {
 		return this.numbers;
 	}
 
+	setNumbers(numbers) {
+		this.numbers = numbers;
+	}
+
 	sum(a, b) {
 		return a + b;
 	}
@@ -76,9 +81,23 @@ class ExampleController {
 	}
 }
 
-const exampleController = new ExampleController();
+class Location {
+	constructor(cities) {
+		this.cities = cities;
+	}
+
+	getCities() {
+		return this.cities || ['Gijon', 'Oviedo', 'Aviles'];
+	}
+}
+
+const example = new ExampleController();
+const berlin = new Location(['Berlin']);
+const asturias = new Location();
 
 pyrite
-	.add(exampleController, 'example');
+	.add(example, 'example')
+	.add(berlin, 'berlin')
+	.add(asturias, 'asturias');
 
 pyrite.listen();

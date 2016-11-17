@@ -4,12 +4,19 @@
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script>
 	'use strict';
-	const Server = {
-		run : (socket) => {
+
+	class PyriteServer {
+		constructor(socket, sync) {
 			this.socket = socket();
 
+			return this.get();
+		}
+
+		get() {
 			return new Promise((resolve) => {
 				this.socket.on('controllersAllow', (controllers) => {
+					console.log(controllers);
+
 					for (let controller in controllers) {
 						this[controller] = {};
 
@@ -21,7 +28,7 @@
 								});
 							};
 
-							this[controller][method] = callback.bind(this);
+							this[controller][method] = callback.bind(this[controller]);
 						}
 
 					}
@@ -29,12 +36,17 @@
 				});
 			});
 		}
-	};
+	}
 
-	Server.run(io).then((server) => {
+	var piriteServer = new PyriteServer(io);
+
+	var piriteMethods = null;
+
+	piriteServer.then((server) => {
 		server.example.getNumbers().then((data) => {
 			console.log(data)
 		});
+
 		server.example.sum(1,2).then((data) => {
 			console.log(data)
 		});
@@ -50,6 +62,18 @@
 		server.example.formatName('Pepe','Hola', 'Where').then((data) => {
 			console.log(data)
 		});
+
+		server.asturias.getCities().then((data) => {
+			console.log(data)
+		});
+
+		server.berlin.getCities().then((data) => {
+			console.log(data)
+		});
+
+		server.example.setNumbers([4,5,6]);
+
+		piriteMethods = server;
 	});
 
 
