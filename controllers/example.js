@@ -15,6 +15,11 @@ module.exports = class Example {
 		return a + b;
 	}
 
+	divide(a, b) {
+		if (a === 0) throw new Error('Not 0');
+		return a / b;
+	}
+
 	formatName(name, middlename, lastname) {
 		return name + ' ' + middlename + ' ' + lastname;
 	}
