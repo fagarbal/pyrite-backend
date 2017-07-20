@@ -1,16 +1,20 @@
 {
-  "name": "pyrite-server",
-  "version": "0.0.1",
-  "description": "",
-  "main": "lib/pyrite-rpc.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "engine.io": "^1.7.2",
-    "express": "^4.14.0",
-    "socket.io": "^1.5.1"
-  }
+	"name": "pyrite-server",
+	"version": "0.0.1",
+	"description": "",
+	"main": "lib/pyrite-rpc.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Fabio Garcia",
+	"license": "MIT",
+	"dependencies": {
+		"engine.io": "^1.7.2",
+		"express": "^4.14.0",
+		"socket.io": "^1.5.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fagarbal/pyrite-server.git"
+	}
 }
